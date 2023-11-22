@@ -5,7 +5,7 @@ server {
     listen [::]:8080;
     root /home/site/wwwroot/public;
     index  index.php;
-    server_name  api.autogrow.pl www.api.autogrow.pl;
+    server_name  api.autogrow.pl www.api.autogrow.pl ;
     port_in_redirect off;
 
     location / {
@@ -20,6 +20,13 @@ server {
 
     # Disable .git directory
     location ~ /\.git {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Disable .env file
+    location ~ /\.env {
         deny all;
         access_log off;
         log_not_found off;

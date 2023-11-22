@@ -25,13 +25,6 @@ server {
         log_not_found off;
     }
 
-    # Disable .env file
-    location ~ /\.env {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-
     location ~ ^/index\.php(/|$) {
         fastcgi_split_path_info ^(.+?\.[Pp][Hh][Pp])(|/.*)$;
         fastcgi_pass 127.0.0.1:9000;

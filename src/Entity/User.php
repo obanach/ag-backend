@@ -7,8 +7,10 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['username'], message: 'There is already an account with this username')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -17,23 +19,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(type: 'string', length: 50, unique: true)]
+    #[Assert\Length(min: 3, max: 50, minMessage: 'Username should be at least {{ limit }} characters', maxMessage: 'Username should not be more than {{ limit }} characters')]
+    #[Assert\Regex(pattern: '/^[a-zA-Z0-9]+$/', message: 'Username should not contain any special characters or spaces')]
     private ?string $username = null;
 
     #[ORM\Column]
-    private array $roles = [];
+    private array $roles = ['ROLE_USER'];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Email should not be blank.')]
+    #[Assert\Email(message: 'The email "{{ value }}" is not a valid email.')]
     private ?string $email = null;
+
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'First name should not be blank.')]
+    #[Assert\Length(min: 3, max: 100, minMessage: 'First name should be at least {{ limit }} characters', maxMessage: 'First name should not be more than {{ limit }} characters')]
+    #[Assert\Regex(pattern: '/^[a-zA-Z\s]+$/', message: 'First name should not contain any special characters or numbers')]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Last name should not be blank.')]
+    #[Assert\Length(min: 3, max: 100, minMessage: 'Last name should be at least {{ limit }} characters', maxMessage: 'Last name should not be more than {{ limit }} characters')]
+    #[Assert\Regex(pattern: '/^[a-zA-Z\s]+$/', message: 'Last name should not contain any special characters or numbers')]
+    private ?string $lastName = null;
 
     #[ORM\Column(type: 'boolean')]
     private $isVerified = false;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
 
     public function getId(): ?int
     {
@@ -49,6 +73,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->username = $username;
 
+        return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): static
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
         return $this;
     }
 
@@ -127,5 +173,54 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValues(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValues(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

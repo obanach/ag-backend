@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\app;
 
 use App\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 
-class MainController extends BaseController {
-    #[Rest\Get(path: '/', name: 'main')]
+#[Rest\Route('/app', name: 'app_')]
+class AppController extends BaseController {
+    #[Rest\Get(path: '/', name: 'index')]
     public function index(): Response {
 
         return $this->blankView([
-            'name' => 'AutoGrow API',
-            'version' => '1.0',
+            'status' => true,
+            'message' => 'Welcome to the API',
         ]);
     }
 }

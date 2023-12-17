@@ -2,19 +2,18 @@
 
 namespace App\Controller\auth;
 
+use App\Controller\BaseController;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/auth', name: 'auth_')]
-class AuthController extends AbstractController {
+class AuthController extends BaseController {
 
     private ValidatorInterface $validator;
     private UserPasswordHasherInterface $userPasswordHasher;
@@ -23,33 +22,19 @@ class AuthController extends AbstractController {
     public function __construct (
         ValidatorInterface $validator,
         UserPasswordHasherInterface $userPasswordHasher,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
     ) {
         $this->validator = $validator;
         $this->userPasswordHasher = $userPasswordHasher;
         $this->entityManager = $entityManager;
     }
 
-    #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response {
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $lastUsername = $authenticationUtils->getLastUsername();
-
-        return $this->render('auth/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
-        ]);
-    }
-
-    #[Route(path: '/register', name: 'app_register', methods: ['POST'])]
+    #[Route(path: '/register', name: 'register', methods: ['POST'])]
     public function register(Request $request): Response {
         $data = $request->toArray();
 
         if (!isset($data['username']) || !isset($data['firstname']) || !isset($data['lastname']) || !isset($data['email']) || !isset($data['password'])) {
-            return new JsonResponse([
-                'status' => false,
-                'message' => 'Missing parameters',
-            ]);
+            return $this->errorView("Missing parameters");
         }
 
         $user = new User();
@@ -66,30 +51,42 @@ class AuthController extends AbstractController {
 
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
-            return new JsonResponse([
-                'status' => false,
-                'message' => $errors[0]->getMessage(),
-            ]);
+            return $this->errorView($errors[0]->getMessage());
         }
+
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return new JsonResponse([
-            'status' => true
-        ]);
+        //TODO: Send email confirmation
+
+        return $this->successView([]);
 
     }
 
-    #[Route(path: '/confirm_email', name: 'app_confirm_email')]
+    #[Route(path: '/user', name: 'user', methods: ['GET'])]
+    public function user(Request $request): Response {
+
+        if (!$this->isGranted('IS_AUTHENTICATED_FULLY')) {
+            return $this->errorView("You are not logged in");
+        }
+
+        $user = $this->getUser();
+        return $this->successView([
+            'username' => $user->getUsername(),
+            'firstname' => $user->getFirstname(),
+            'lastname' => $user->getLastname(),
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+            'created_at' => $user->getCreatedAt(),
+            'updated_at' => $user->getUpdatedAt(),
+        ]);
+    }
+
+    #[Route(path: '/confirm_email', name: 'confirm_email')]
     public function confirm_email(): JsonResponse {
         return new JsonResponse([
             'status' => false,
             'message' => 'Missing parameters',
         ]);
-    }
-    #[Route(path: '/logout', name: 'app_logout')]
-    public function logout(): void
-    {
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 }

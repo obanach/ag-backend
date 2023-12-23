@@ -67,26 +67,35 @@ class AuthController extends BaseController {
     public function user(Request $request): Response {
 
         if (!$this->isGranted('IS_AUTHENTICATED_FULLY')) {
-            return $this->errorView("You are not logged in");
+            return $this->errorView("You are not logged in", Response::HTTP_UNAUTHORIZED);
         }
 
         $user = $this->getUser();
         return $this->successView([
             'username' => $user->getUsername(),
-            'firstname' => $user->getFirstname(),
-            'lastname' => $user->getLastname(),
+            'firstName' => $user->getFirstname(),
+            'lastName' => $user->getLastname(),
             'email' => $user->getEmail(),
-            'roles' => $user->getRoles(),
-            'created_at' => $user->getCreatedAt(),
-            'updated_at' => $user->getUpdatedAt(),
+            'createdAt' => $user->getCreatedAt(),
+            'updatedAt' => $user->getUpdatedAt(),
+            'avatar' => 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($user->getEmail()))) . '?s=200&d=mp',
+            'verified' => $user->isVerified(),
         ]);
     }
 
-    #[Route(path: '/confirm_email', name: 'confirm_email')]
-    public function confirm_email(): JsonResponse {
+    #[Route(path: '/confirm-email', name: 'confirm_email', methods: ['POST'])]
+    public function confirm_email(Request $request): Response {
+
+        $data = $request->toArray();
+
+        if ($code = $data['code'] === null) {
+            return $this->errorView("Code is missing");
+        }
+
         return new JsonResponse([
             'status' => false,
             'message' => 'Missing parameters',
+            'code' => $code,
         ]);
     }
 }

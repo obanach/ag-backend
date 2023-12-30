@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations as Rest;
 

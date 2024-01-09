@@ -3,12 +3,13 @@
 namespace App\Entity\Hub\Module;
 
 use App\Repository\Hub\Module\ActionRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ActionRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'hub_module_action')]
-class Action
-{
+class Action {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -24,74 +25,68 @@ class Action
     private ?bool $state = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'actions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Module $module = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getName(): ?string
-    {
+    public function getName(): ?string {
         return $this->name;
     }
 
-    public function setName(string $name): static
-    {
+    public function setName(string $name): static {
         $this->name = $name;
 
         return $this;
     }
 
-    public function getTime(): ?int
-    {
+    public function getTime(): ?int {
         return $this->time;
     }
 
-    public function setTime(int $time): static
-    {
+    public function setTime(int $time): static {
         $this->time = $time;
 
         return $this;
     }
 
-    public function isState(): ?bool
-    {
+    public function isState(): ?bool {
         return $this->state;
     }
 
-    public function setState(bool $state): static
-    {
+    public function setState(bool $state): static {
         $this->state = $state;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
+    public function getCreatedAt(): ?DateTimeImmutable {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
+    public function setCreatedAt(DateTimeImmutable $createdAt): static {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getModule(): ?Module
-    {
+    public function getModule(): ?Module {
         return $this->module;
     }
 
-    public function setModule(?Module $module): static
-    {
+    public function setModule(?Module $module): static {
         $this->module = $module;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function prePersist(): void {
+        $this->createdAt = new DateTimeImmutable();
     }
 }

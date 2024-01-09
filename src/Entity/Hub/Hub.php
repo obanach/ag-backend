@@ -4,14 +4,16 @@ namespace App\Entity\Hub;
 
 use App\Entity\Hub\Module\Module;
 use App\Repository\Hub\HubRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HubRepository::class)]
-class Hub
-{
+#[ORM\Table(name: 'hub')]
+#[ORM\HasLifecycleCallbacks]
+class Hub {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -39,47 +41,41 @@ class Hub
     private ?string $mqttKey = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $pingAt = null;
+    private ?DateTimeImmutable $pingAt = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private ?DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $deletedAt = null;
+    private ?DateTimeImmutable $deletedAt = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->modules = new ArrayCollection();
         $this->logs = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getName(): ?string
-    {
+    public function getName(): ?string {
         return $this->name;
     }
 
-    public function setName(string $name): static
-    {
+    public function setName(string $name): static {
         $this->name = $name;
 
         return $this;
     }
 
-    public function getPairCode(): ?int
-    {
+    public function getPairCode(): ?int {
         return $this->pairCode;
     }
 
-    public function setPairCode(?int $pairCode): static
-    {
+    public function setPairCode(?int $pairCode): static {
         $this->pairCode = $pairCode;
 
         return $this;
@@ -88,13 +84,11 @@ class Hub
     /**
      * @return Collection<int, Module>
      */
-    public function getModules(): Collection
-    {
+    public function getModules(): Collection {
         return $this->modules;
     }
 
-    public function addModule(Module $module): static
-    {
+    public function addModule(Module $module): static {
         if (!$this->modules->contains($module)) {
             $this->modules->add($module);
             $module->setHub($this);
@@ -103,8 +97,7 @@ class Hub
         return $this;
     }
 
-    public function removeModule(Module $module): static
-    {
+    public function removeModule(Module $module): static {
         if ($this->modules->removeElement($module)) {
             // set the owning side to null (unless already changed)
             if ($module->getHub() === $this) {
@@ -118,13 +111,11 @@ class Hub
     /**
      * @return Collection<int, Log>
      */
-    public function getLogs(): Collection
-    {
+    public function getLogs(): Collection {
         return $this->logs;
     }
 
-    public function addLog(Log $log): static
-    {
+    public function addLog(Log $log): static {
         if (!$this->logs->contains($log)) {
             $this->logs->add($log);
             $log->setHub($this);
@@ -133,8 +124,7 @@ class Hub
         return $this;
     }
 
-    public function removeLog(Log $log): static
-    {
+    public function removeLog(Log $log): static {
         if ($this->logs->removeElement($log)) {
             // set the owning side to null (unless already changed)
             if ($log->getHub() === $this) {
@@ -145,87 +135,83 @@ class Hub
         return $this;
     }
 
-    public function getAccessToken(): ?string
-    {
+    public function getAccessToken(): ?string {
         return $this->accessToken;
     }
 
-    public function setAccessToken(string $accessToken): static
-    {
+    public function setAccessToken(string $accessToken): static {
         $this->accessToken = $accessToken;
 
         return $this;
     }
 
-    public function getMqttName(): ?string
-    {
+    public function getMqttName(): ?string {
         return $this->mqttName;
     }
 
-    public function setMqttName(string $mqttName): static
-    {
+    public function setMqttName(string $mqttName): static {
         $this->mqttName = $mqttName;
 
         return $this;
     }
 
-    public function getMqttKey(): ?string
-    {
+    public function getMqttKey(): ?string {
         return $this->mqttKey;
     }
 
-    public function setMqttKey(string $mqttKey): static
-    {
+    public function setMqttKey(string $mqttKey): static {
         $this->mqttKey = $mqttKey;
 
         return $this;
     }
 
-    public function getPingAt(): ?\DateTimeImmutable
-    {
+    public function getPingAt(): ?DateTimeImmutable {
         return $this->pingAt;
     }
 
-    public function setPingAt(?\DateTimeImmutable $pingAt): static
-    {
+    public function setPingAt(?DateTimeImmutable $pingAt): static {
         $this->pingAt = $pingAt;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
+    public function getCreatedAt(): ?DateTimeImmutable {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
+    public function setCreatedAt(DateTimeImmutable $createdAt): static {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
+    public function getUpdatedAt(): ?DateTimeImmutable {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
+    public function setUpdatedAt(?DateTimeImmutable $updatedAt): static {
         $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeImmutable
-    {
+    public function getDeletedAt(): ?DateTimeImmutable {
         return $this->deletedAt;
     }
 
-    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
-    {
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static {
         $this->deletedAt = $deletedAt;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValues(): void {
+        $this->createdAt = new DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValues(): void {
+        $this->updatedAt = new DateTimeImmutable();
     }
 }

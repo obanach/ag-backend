@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LogRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'hub_log')]
 class Log {
     #[ORM\Id]
@@ -62,15 +63,18 @@ class Log {
         return $this;
     }
 
-    public function getHub(): ?Hub
-    {
+    public function getHub(): ?Hub {
         return $this->hub;
     }
 
-    public function setHub(?Hub $hub): static
-    {
+    public function setHub(?Hub $hub): static {
         $this->hub = $hub;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValues(): void {
+        $this->createdAt = new DateTimeImmutable();
     }
 }

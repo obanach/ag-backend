@@ -3,6 +3,7 @@
 namespace App\Entity\Hub;
 
 use App\Entity\Hub\Module\Module;
+use App\Entity\User;
 use App\Repository\Hub\HubRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -51,6 +52,10 @@ class Hub {
 
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $deletedAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'hubs')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     public function __construct() {
         $this->modules = new ArrayCollection();
@@ -213,5 +218,17 @@ class Hub {
     #[ORM\PreUpdate]
     public function setUpdatedAtValues(): void {
         $this->updatedAt = new DateTimeImmutable();
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
     }
 }

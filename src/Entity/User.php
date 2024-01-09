@@ -2,8 +2,11 @@
 
 namespace App\Entity;
 
+use App\Entity\Hub\Hub;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -58,6 +61,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
 
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $deletedAt = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Hub::class, orphanRemoval: true)]
+    private Collection $hubs;
+
+    public function __construct()
+    {
+        $this->hubs = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
@@ -196,5 +207,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     #[ORM\PreUpdate]
     public function setUpdatedAtValues(): void {
         $this->updatedAt = new DateTimeImmutable();
+    }
+
+    /**
+     * @return Collection<int, Hub>
+     */
+    public function getHubs(): Collection
+    {
+        return $this->hubs;
+    }
+
+    public function addHub(Hub $hub): static
+    {
+        if (!$this->hubs->contains($hub)) {
+            $this->hubs->add($hub);
+            $hub->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHub(Hub $hub): static
+    {
+        if ($this->hubs->removeElement($hub)) {
+            // set the owning side to null (unless already changed)
+            if ($hub->getUser() === $this) {
+                $hub->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -35,12 +35,6 @@ class Hub {
     #[ORM\Column(type: Types::TEXT)]
     private ?string $accessToken = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $mqttName = null;
-
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $mqttKey = null;
-
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $pingAt = null;
 
@@ -56,6 +50,10 @@ class Hub {
     #[ORM\ManyToOne(inversedBy: 'hubs')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Mqtt $mqtt = null;
 
     public function __construct() {
         $this->modules = new ArrayCollection();
@@ -150,26 +148,6 @@ class Hub {
         return $this;
     }
 
-    public function getMqttName(): ?string {
-        return $this->mqttName;
-    }
-
-    public function setMqttName(string $mqttName): static {
-        $this->mqttName = $mqttName;
-
-        return $this;
-    }
-
-    public function getMqttKey(): ?string {
-        return $this->mqttKey;
-    }
-
-    public function setMqttKey(string $mqttKey): static {
-        $this->mqttKey = $mqttKey;
-
-        return $this;
-    }
-
     public function getPingAt(): ?DateTimeImmutable {
         return $this->pingAt;
     }
@@ -228,6 +206,18 @@ class Hub {
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getMqtt(): ?Mqtt
+    {
+        return $this->mqtt;
+    }
+
+    public function setMqtt(Mqtt $mqtt): static
+    {
+        $this->mqtt = $mqtt;
 
         return $this;
     }

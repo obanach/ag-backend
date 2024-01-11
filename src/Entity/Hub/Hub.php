@@ -29,7 +29,7 @@ class Hub {
     #[ORM\OneToMany(mappedBy: 'hub', targetEntity: Module::class, orphanRemoval: true)]
     private Collection $modules;
 
-    #[ORM\OneToMany(mappedBy: 'hub', targetEntity: Log::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'hub', targetEntity: Log::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $logs;
 
     #[ORM\Column(type: Types::TEXT)]

@@ -4,11 +4,11 @@ namespace App\Controller\app;
 
 use App\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Response;
-use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route('/app', name: 'app_')]
+#[Route('/app', name: 'app_')]
 class AppController extends BaseController {
-    #[Rest\Get(path: '/', name: 'index')]
+    #[Route(path: '/', name: 'index', methods: ['GET'])]
     public function index(): Response {
 
         return $this->blankView([

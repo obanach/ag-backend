@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\Routing\Attribute\Route;
 
 class MainController extends BaseController {
-    #[Rest\Get(path: '/', name: 'main')]
+    #[Route(path: '/', name: 'main')]
     public function index(): Response {
 
         return $this->blankView([

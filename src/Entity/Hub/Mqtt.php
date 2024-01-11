@@ -37,6 +37,9 @@ class Mqtt {
     #[ORM\Column]
     private ?DateTimeImmutable $createdAt = null;
 
+    #[ORM\OneToOne(mappedBy: 'mqtt', cascade: ['persist', 'remove'])]
+    private ?Hub $hub = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -104,5 +107,22 @@ class Mqtt {
     #[ORM\PrePersist]
     public function setCreatedAtValues(): void {
         $this->createdAt = new DateTimeImmutable();
+    }
+
+    public function getHub(): ?Hub
+    {
+        return $this->hub;
+    }
+
+    public function setHub(Hub $hub): static
+    {
+        // set the owning side of the relation if necessary
+        if ($hub->getMqtt() !== $this) {
+            $hub->setMqtt($this);
+        }
+
+        $this->hub = $hub;
+
+        return $this;
     }
 }

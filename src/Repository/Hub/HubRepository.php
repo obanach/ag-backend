@@ -21,6 +21,18 @@ class HubRepository extends ServiceEntityRepository
         parent::__construct($registry, Hub::class);
     }
 
+
+    public function findByPairCode($pairCode): ?Hub
+    {
+        return $this->createQueryBuilder('h')
+            ->andWhere('h.pairCode = :pairCode')
+            ->setParameter('pairCode', $pairCode)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+
+    }
+
 //    /**
 //     * @return Hub[] Returns an array of Hub objects
 //     */

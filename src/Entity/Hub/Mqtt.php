@@ -31,7 +31,7 @@ class Mqtt {
     #[Assert\Choice(choices: ['allow', 'deny'])]
     private ?string $permission = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $topic = null;
 
     #[ORM\Column]

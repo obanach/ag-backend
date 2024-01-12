@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Hub\Hub;
 use App\Entity\Hub\Log;
+use App\Entity\Hub\Mqtt;
 use App\Entity\User;
 use App\Exception\Service\HubException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,17 +27,23 @@ class HubService {
      */
     public function create(array $data, User $user): Hub {
 
-        $log = new Log();
-        $log->setType('info');
-        $log->setMessage('Hub created');
-
         $hub = new Hub();
         $hub->setName($data['name']);
         $hub->setPairCode($this->generatePairCode());
         $hub->setUser($user);
         $hub->setAccessToken($this->generateRandomKey());
-        $hub->setMqttName($this->generateRandomKey());
-        $hub->setMqttKey($this->generateRandomKey());
+
+        $mqtt = new Mqtt();
+        $mqtt->setUsername($this->generateRandomKey());
+        $mqtt->setPassword($this->generateRandomKey());
+        $mqtt->setAction('all');
+        $mqtt->setPermission('allow');
+
+        $log = new Log();
+        $log->setType('info');
+        $log->setMessage('Hub created');
+
+        $hub->setMqtt($mqtt);
         $hub->AddLog($log);
 
         $errors = $this->validator->validate($hub);
@@ -45,6 +52,10 @@ class HubService {
         }
 
         $this->entityManager->persist($hub);
+        $this->entityManager->flush();
+
+        $mqtt->setTopic('hub/' . $hub->getId() . '/#');
+        $this->entityManager->persist($mqtt);
         $this->entityManager->flush();
 
         return $hub;

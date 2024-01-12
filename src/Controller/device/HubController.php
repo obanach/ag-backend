@@ -2,6 +2,7 @@
 
 namespace App\Controller\device;
 
+use App\Controller\DeviceController;
 use App\Repository\Hub\HubRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;

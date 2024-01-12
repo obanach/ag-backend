@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\device;
+namespace App\Controller;
 
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\View\View;

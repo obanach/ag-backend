@@ -18,14 +18,13 @@ class HubService {
     private EntityManagerInterface $entityManager;
     private HubRepository $hubRepository;
 
-    public function __construct(ValidatorInterface $validator,EntityManagerInterface $entityManager, HubRepository $hubRepository) {
+    public function __construct(ValidatorInterface $validator, EntityManagerInterface $entityManager, HubRepository $hubRepository) {
         $this->validator = $validator;
         $this->entityManager = $entityManager;
         $this->hubRepository = $hubRepository;
     }
 
     /**
-     * @throws RandomException
      * @throws HubException
      */
     public function create(array $data, User $user): Hub {
@@ -49,11 +48,7 @@ class HubService {
         $hub->setMqtt($mqtt);
         $hub->AddLog($log);
 
-        $errors = $this->validator->validate($hub);
-        if (count($errors) > 0) {
-            throw new HubException($errors[0]->getMessage());
-        }
-
+        $this->entityValidator($hub);
         $this->entityManager->persist($hub);
         $this->entityManager->flush();
 
@@ -62,42 +57,6 @@ class HubService {
         $this->entityManager->flush();
 
         return $hub;
-    }
-
-    public function getUserHubs(User $user): array {
-        $hubs = $this->hubRepository->findActiveByUser($user);
-
-        if (!$hubs) {
-            return [];
-        }
-
-        $data = [];
-        foreach ($hubs as $hub) {
-            $data[] = [
-                'id' => $hub->getId(),
-                'name' => $hub->getName(),
-                'pairCode' => $hub->getPairCode(),
-                'modulesCount' => count($hub->getModules()),
-                'pingAt' => $hub->getPingAt(),
-            ];
-        }
-
-        return $data;
-    }
-
-    public function getUserHub(int $id, User $user): array {
-        $hub = $this->hubRepository->findOneBy(['id' => $id, 'user' => $user]);
-
-        if (!$hub) {
-            throw new HubException("Hub not found");
-        }
-
-        return [
-            'id' => $hub->getId(),
-            'name' => $hub->getName(),
-            'modulesCount' => count($hub->getModules()),
-            'pingAt' => $hub->getPingAt(),
-        ];
     }
 
     /**
@@ -114,4 +73,107 @@ class HubService {
         return hash('sha256', random_bytes(64));
     }
 
+    /**
+     * @throws HubException
+     */
+    private function entityValidator($entity): void {
+        $errors = $this->validator->validate($entity);
+        if (count($errors) > 0) {
+            throw new HubException($errors[0]->getMessage());
+        }
+    }
+
+    public function getUserHubs(User $user): array {
+        return $this->hubRepository->findActiveByUser($user);
+    }
+
+    /**
+     * @throws HubException
+     */
+    public function getDetails(int $id, ?User $user = null): Hub {
+        $hub = $this->hubRepository->findOneBy(['id' => $id]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        if ($user && $hub->getUser() !== $user) {
+            throw new HubException("Hub assigned to another user");
+        }
+
+        return $hub;
+    }
+
+    /**
+     * @throws HubException
+     */
+    public function delete(int $id, ?User $user = null): void {
+        $hub = $this->hubRepository->findOneBy(['id' => $id]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        if ($user && $hub->getUser() !== $user) {
+            throw new HubException("Hub assigned to another user");
+        }
+
+        $this->entityManager->remove($hub);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @throws HubException
+     */
+    public function update(int $id, array $data, ?User $user = null): Hub {
+        $hub = $this->hubRepository->findOneBy(['id' => $id]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        if ($user && $hub->getUser() !== $user) {
+            throw new HubException("Hub assigned to another user");
+        }
+
+        if (isset($data['name'])) {
+            $hub->setName($data['name']);
+        }
+
+        $this->entityValidator($hub);
+        $this->entityManager->persist($hub);
+        $this->entityManager->flush();
+
+        return $hub;
+    }
+
+    /**
+     * @throws HubException
+     */
+    public function getModules(int $hubId, ?User $user = null): array {
+
+        $hub = $this->hubRepository->findOneBy(['id' => $hubId]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        if ($user && $hub->getUser() !== $user) {
+            throw new HubException("Hub assigned to another user");
+        }
+
+        $data = [];
+        foreach ($hub->getModules() as $module) {
+            $data[] = [
+                'id' => $module->getId(),
+                'name' => $module->getName(),
+                'type' => $module->getType(),
+                'status' => $module->getStatus(),
+                'pingAt' => $module->getPingAt(),
+            ];
+        }
+
+        return $hub->getModules();
+
+    }
 }

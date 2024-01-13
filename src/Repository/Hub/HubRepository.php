@@ -3,6 +3,7 @@
 namespace App\Repository\Hub;
 
 use App\Entity\Hub\Hub;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -32,6 +33,17 @@ class HubRepository extends ServiceEntityRepository
         ;
 
     }
+
+    public function findActiveByUser(User $user): array {
+        return $this->createQueryBuilder('h')
+            ->andWhere('h.user = :user')
+            ->andWhere('h.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('h.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
 
 //    /**
 //     * @return Hub[] Returns an array of Hub objects

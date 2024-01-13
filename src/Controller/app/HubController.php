@@ -41,4 +41,24 @@ class HubController extends BaseController {
         ]);
     }
 
+    #[Route('/', name: 'user_get_all', methods: ['GET'])]
+    public function userGetAll(): Response {
+            $hubs = $this->hubService->getUserHubs($this->getUser());
+            return $this->successView($hubs);
+    }
+
+    #[Route('/{id}', name: 'user_get_one', methods: ['GET'])]
+    public function userGetOne(int $id): Response {
+        try {
+            $hub = $this->hubService->getUserHub($id, $this->getUser());
+        } catch (HubException $e) {
+            return $this->errorView($e->getMessage());
+        }
+
+        if (!$hub) {
+            return $this->errorView("Hub not found");
+        }
+        return $this->successView($hub);
+    }
+
 }

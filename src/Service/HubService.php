@@ -7,6 +7,7 @@ use App\Entity\Hub\Log;
 use App\Entity\Hub\Mqtt;
 use App\Entity\User;
 use App\Exception\Service\HubException;
+use App\Repository\Hub\HubRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -15,10 +16,12 @@ class HubService {
 
     private ValidatorInterface $validator;
     private EntityManagerInterface $entityManager;
+    private HubRepository $hubRepository;
 
-    public function __construct(ValidatorInterface $validator,EntityManagerInterface $entityManager,) {
+    public function __construct(ValidatorInterface $validator,EntityManagerInterface $entityManager, HubRepository $hubRepository) {
         $this->validator = $validator;
         $this->entityManager = $entityManager;
+        $this->hubRepository = $hubRepository;
     }
 
     /**
@@ -61,7 +64,41 @@ class HubService {
         return $hub;
     }
 
+    public function getUserHubs(User $user): array {
+        $hubs = $this->hubRepository->findActiveByUser($user);
 
+        if (!$hubs) {
+            return [];
+        }
+
+        $data = [];
+        foreach ($hubs as $hub) {
+            $data[] = [
+                'id' => $hub->getId(),
+                'name' => $hub->getName(),
+                'pairCode' => $hub->getPairCode(),
+                'modulesCount' => count($hub->getModules()),
+                'pingAt' => $hub->getPingAt(),
+            ];
+        }
+
+        return $data;
+    }
+
+    public function getUserHub(int $id, User $user): array {
+        $hub = $this->hubRepository->findOneBy(['id' => $id, 'user' => $user]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        return [
+            'id' => $hub->getId(),
+            'name' => $hub->getName(),
+            'modulesCount' => count($hub->getModules()),
+            'pingAt' => $hub->getPingAt(),
+        ];
+    }
 
     /**
      * @throws RandomException

@@ -38,6 +38,7 @@ class HubController extends DeviceController {
         }
 
         $hub->setPairCode(null);
+        $hub->setPingAt(new \DateTimeImmutable());
         $this->entityManager->persist($hub);
         $this->entityManager->flush();
 

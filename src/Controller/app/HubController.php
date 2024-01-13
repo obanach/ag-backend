@@ -14,7 +14,7 @@ class HubController extends BaseController {
 
     private HubService $hubService;
 
-    public function __construct (HubService $hubService) {
+    public function __construct(HubService $hubService) {
         $this->hubService = $hubService;
     }
 
@@ -22,8 +22,7 @@ class HubController extends BaseController {
     public function create(Request $request): Response {
 
         $data = $request->toArray();
-
-        if (!isset($data['name']) ) {
+        if (!isset($data['name'])) {
             return $this->errorView("Missing parameters");
         }
 
@@ -33,32 +32,118 @@ class HubController extends BaseController {
             return $this->errorView($e->getMessage());
         }
 
-
         return $this->successView([
             'id' => $hub->getId(),
             'name' => $hub->getName(),
-            'pairCode' => $hub->getPairCode()
+            'pairCode' => $hub->getPairCode(),
+            'modulesCount' => count($hub->getModules()),
+            'pingAt' => $hub->getPingAt(),
+            'createdAt' => $hub->getCreatedAt(),
+            'updatedAt' => $hub->getUpdatedAt(),
+            'online' => $hub->getPingAt() > new \DateTimeImmutable('-5 minutes'),
         ]);
     }
 
-    #[Route('/', name: 'user_get_all', methods: ['GET'])]
-    public function userGetAll(): Response {
-            $hubs = $this->hubService->getUserHubs($this->getUser());
-            return $this->successView($hubs);
+    #[Route('/', name: 'get', methods: ['GET'])]
+    public function get(): Response {
+
+        $hubs = $this->hubService->getUserHubs($this->getUser());
+
+        $data = [];
+        foreach ($hubs as $hub) {
+            $data[] = [
+                'id' => $hub->getId(),
+                'name' => $hub->getName(),
+                'pairCode' => $hub->getPairCode(),
+                'modulesCount' => count($hub->getModules()),
+                'pingAt' => $hub->getPingAt(),
+                'createdAt' => $hub->getCreatedAt(),
+                'updatedAt' => $hub->getUpdatedAt(),
+                'online' => $hub->getPingAt() > new \DateTimeImmutable('-5 minutes'),
+            ];
+        }
+
+        return $this->successView($data);
     }
 
-    #[Route('/{id}', name: 'user_get_one', methods: ['GET'])]
-    public function userGetOne(int $id): Response {
+    #[Route('/{id}', name: 'get_details', methods: ['GET'])]
+    public function getDetails(int $id): Response {
+
         try {
-            $hub = $this->hubService->getUserHub($id, $this->getUser());
+            $hub = $this->hubService->getDetails($id, $this->getUser());
         } catch (HubException $e) {
             return $this->errorView($e->getMessage());
         }
 
-        if (!$hub) {
-            return $this->errorView("Hub not found");
+        return $this->successView([
+            'id' => $hub->getId(),
+            'name' => $hub->getName(),
+            'pairCode' => $hub->getPairCode(),
+            'modulesCount' => count($hub->getModules()),
+            'pingAt' => $hub->getPingAt(),
+            'createdAt' => $hub->getCreatedAt(),
+            'updatedAt' => $hub->getUpdatedAt(),
+            'online' => $hub->getPingAt() > new \DateTimeImmutable('-5 minutes'),
+        ]);
+    }
+
+    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete(int $id): Response {
+        try {
+            $this->hubService->delete($id, $this->getUser());
+        } catch (HubException $e) {
+            return $this->errorView($e->getMessage());
         }
-        return $this->successView($hub);
+        return $this->successView([]);
+    }
+
+    #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    public function update(int $id, Request $request): Response {
+
+        $data = $request->toArray();
+        if (!isset($data['name'])) {
+            return $this->errorView("Missing parameters");
+        }
+
+        try {
+            $hub = $this->hubService->update($id, $data, $this->getUser());
+        } catch (HubException $e) {
+            return $this->errorView($e->getMessage());
+        }
+
+        return $this->successView([
+            'id' => $hub->getId(),
+            'name' => $hub->getName(),
+            'pairCode' => $hub->getPairCode(),
+            'modulesCount' => count($hub->getModules()),
+            'pingAt' => $hub->getPingAt(),
+            'createdAt' => $hub->getCreatedAt(),
+            'updatedAt' => $hub->getUpdatedAt(),
+            'online' => $hub->getPingAt() > new \DateTimeImmutable('-5 minutes'),
+        ]);
+    }
+
+
+    #[Route('/{id}/module', name: 'get_module', methods: ['GET'])]
+    public function get_module(int $id): Response {
+        try {
+            $hub = $this->hubService->getDetails($id, $this->getUser());
+        } catch (HubException $e) {
+            return $this->errorView($e->getMessage());
+        }
+
+        $data = [];
+        foreach ($hub->getModules() as $module) {
+            $data[] = [
+                'id' => $module->getId(),
+                'name' => $module->getName(),
+                'type' => $module->getType(),
+                'batteryLevel' => $module->getBatteryLevel(),
+                'pingAt' => $module->getPingAt(),
+            ];
+        }
+
+        return $this->successView($data);
     }
 
 }

@@ -84,6 +84,10 @@ class HubController extends BaseController {
             'createdAt' => $hub->getCreatedAt(),
             'updatedAt' => $hub->getUpdatedAt(),
             'online' => $hub->getPingAt() > new \DateTimeImmutable('-5 minutes'),
+            'mqtt' => [
+                'username' => $hub->getMqtt()->getUsername(),
+                'password' => $hub->getMqtt()->getPassword(),
+            ]
         ]);
     }
 

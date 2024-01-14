@@ -37,9 +37,6 @@ class Module {
     private Collection $actions;
 
     #[ORM\Column(nullable: true)]
-    private ?int $batteryLevel = null;
-
-    #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $pingAt = null;
 
     #[ORM\Column]
@@ -140,16 +137,6 @@ class Module {
                 $action->setModule(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getBatteryLevel(): ?int {
-        return $this->batteryLevel;
-    }
-
-    public function setBatteryLevel(?int $batteryLevel): static {
-        $this->batteryLevel = $batteryLevel;
 
         return $this;
     }

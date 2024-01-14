@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ModuleRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -19,9 +20,14 @@ class Module {
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Name should not be blank.')]
+    #[Assert\Length(min: 3, max: 100, minMessage: 'Name should be at least {{ limit }} characters', maxMessage: 'Name should not be more than {{ limit }} characters')]
+    #[Assert\Regex(pattern: '/^[a-zA-Z0-9\s]+$/', message: 'Name should not contain any special characters')]
     private ?string $name = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Type should not be blank.')]
+    #[Assert\Choice(choices: ['environment', 'switch'], message: 'Type should be either environment or switch')]
     private ?string $type = null;
 
     #[ORM\OneToMany(mappedBy: 'module', targetEntity: Data::class, orphanRemoval: true)]
@@ -48,6 +54,12 @@ class Module {
     #[ORM\ManyToOne(inversedBy: 'modules')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Hub $hub = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Mac address should not be blank.')]
+    #[Assert\Length(min: 17, max: 17, minMessage: 'Mac address should be at least {{ limit }} characters', maxMessage: 'Mac address should not be more than {{ limit }} characters')]
+    #[Assert\Regex(pattern: '/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/', message: 'Mac address should be in the format of XX:XX:XX:XX:XX:XX')]
+    private ?string $macAddress = null;
 
     public function __construct() {
         $this->data = new ArrayCollection();
@@ -200,5 +212,17 @@ class Module {
     #[ORM\PreUpdate]
     public function setUpdatedAtValues(): void {
         $this->updatedAt = new DateTimeImmutable();
+    }
+
+    public function getMacAddress(): ?string
+    {
+        return $this->macAddress;
+    }
+
+    public function setMacAddress(?string $macAddress): static
+    {
+        $this->macAddress = $macAddress;
+
+        return $this;
     }
 }

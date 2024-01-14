@@ -4,10 +4,12 @@ namespace App\Service;
 
 use App\Entity\Hub\Hub;
 use App\Entity\Hub\Log;
+use App\Entity\Hub\Module\Module;
 use App\Entity\Hub\Mqtt;
 use App\Entity\User;
 use App\Exception\Service\HubException;
 use App\Repository\Hub\HubRepository;
+use App\Repository\Hub\Module\ModuleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -71,6 +73,25 @@ class HubService {
      */
     private function generateRandomKey(): string {
         return hash('sha256', random_bytes(64));
+    }
+
+    /**
+     * @throws HubException
+     */
+    public function checkHubAccess(int $hubId, ?string $accessToken): void{
+
+        if (!$accessToken) {
+            throw new HubException("Access token required");
+        }
+
+        $hub = $this->hubRepository->findOneBy(['id' => $hubId]);
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        if ($hub->getAccessToken() !== $accessToken) {
+            throw new HubException("Hub access denied");
+        }
     }
 
     /**
@@ -173,7 +194,22 @@ class HubService {
             ];
         }
 
-        return $hub->getModules();
+        return $data;
+    }
 
+    /**
+     * @throws HubException
+     */
+    public function ping(int $hubId): void {
+
+        $hub = $this->hubRepository->findOneBy(['id' => $hubId]);
+
+        if (!$hub) {
+            throw new HubException("Hub not found");
+        }
+
+        $hub->setPingAt(new \DateTimeImmutable());
+        $this->entityManager->persist($hub);
+        $this->entityManager->flush();
     }
 }

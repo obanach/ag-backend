@@ -77,7 +77,7 @@ class HubController extends DeviceController {
 
         try {
             $this->hubService->checkHubAccess($hubId, $accessToken);
-            $this->hubService->pingHub($hubId);
+            $this->hubService->ping($hubId);
         } catch (HubException $e) {
             return $this->errorView($e->getMessage());
         }

@@ -21,6 +21,17 @@ class DataRepository extends ServiceEntityRepository
         parent::__construct($registry, Data::class);
     }
 
+    public function getLatestByModuleId(int $moduleId, int $limit = 20): array {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.module = :moduleId')
+            ->setParameter('moduleId', $moduleId)
+            ->orderBy('d.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return Data[] Returns an array of Data objects
 //     */

@@ -4,6 +4,8 @@ namespace App\Controller\app;
 
 use App\Controller\BaseController;
 use App\Exception\Service\HubException;
+use App\Repository\Hub\Module\DataRepository;
+use App\Repository\Hub\Module\ModuleRepository;
 use App\Service\HubService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -129,7 +131,7 @@ class HubController extends BaseController {
 
 
     #[Route('/{id}/module', name: 'get_module', methods: ['GET'])]
-    public function get_module(int $id): Response {
+    public function get_module(int $id, DataRepository $dataRepository): Response {
         try {
             $hub = $this->hubService->getDetails($id, $this->getUser());
         } catch (HubException $e) {
@@ -138,11 +140,41 @@ class HubController extends BaseController {
 
         $data = [];
         foreach ($hub->getModules() as $module) {
+
+            //
+            $module_data = $dataRepository->getLatestByModuleId($module->getId());
+            $module_data_formatted = [];
+            foreach ($module_data as $one) {
+
+                if ($module->getType() === 'environment') {
+                    $module_data_formatted[] = [
+                        'id' => $one->getId(),
+                        'temperature' => $one->getData()['temperature'],
+                        'humidity' => $one->getData()['humidity'],
+                        'dirt' => $one->getData()['dirt'],
+                        'battery' => $one->getData()['battery'],
+                        'createdAt' => $one->getCreatedAt(),
+                    ];
+                    continue;
+                }
+
+                if ($module->getType() === 'switch') {
+                    $module_data_formatted[] = [
+                        'id' => $one->getId(),
+                        'state' => $one->getData()['state'],
+                        'createdAt' => $one->getCreatedAt(),
+                    ];
+                    continue;
+                }
+
+                $module_data_formatted[] = [];
+            }
+
             $data[] = [
                 'id' => $module->getId(),
                 'name' => $module->getName(),
                 'type' => $module->getType(),
-                'batteryLevel' => $module->getBatteryLevel(),
+                'data' => $module_data_formatted,
                 'pingAt' => $module->getPingAt(),
             ];
         }

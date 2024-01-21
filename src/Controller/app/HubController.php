@@ -143,6 +143,8 @@ class HubController extends BaseController {
 
             //
             $module_data = $dataRepository->getLatestByModuleId($module->getId());
+            $module_data = array_reverse($module_data);
+
             $module_data_formatted = [];
             foreach ($module_data as $one) {
 

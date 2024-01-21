@@ -25,7 +25,7 @@ class DataRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('d')
             ->andWhere('d.module = :moduleId')
             ->setParameter('moduleId', $moduleId)
-            ->orderBy('d.id', 'DESC')
+            ->orderBy('d.id', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
